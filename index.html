@@ -17,4 +17,68 @@ button{padding:10px 14px;border:0;border-radius:10px;background:#e94560;color:#f
 <div id="chat"></div>
 <div id="bar"><input id="in" placeholder="Ketik di sini..."><button id="kirim">Kirim</button></div>
 <script type="module">
-import { CreateMLCEngine }
+import { CreateMLCEngine } from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm";
+
+const MODEL = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
+const PERSONA = `Kamu adalah Mika, asisten pribadi yang santai dan ramah.
+Selalu jawab dalam bahasa Indonesia gaul. Panggil user "Lek".
+Jawab singkat, 1-3 kalimat.`;
+
+const chat = document.getElementById("chat");
+const input = document.getElementById("in");
+const status = document.getElementById("status");
+let engine = null, sibuk = false;
+let riwayat = JSON.parse(localStorage.getItem("riwayat") || "[]");
+
+function tampil(kelas, teks) {
+  const d = document.createElement("div");
+  d.className = "m " + kelas;
+  d.textContent = teks;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+  return d;
+}
+riwayat.forEach(m => tampil(m.role === "user" ? "u" : "b", m.content));
+
+async function muatOtak() {
+  if (engine) return;
+  if (!navigator.gpu) throw new Error("HP/browser ini belum mendukung WebGPU.");
+  engine = await CreateMLCEngine(MODEL, {
+    initProgressCallback: p => { status.textContent = p.text; }
+  });
+  status.textContent = "Otak siap (offline).";
+}
+
+async function kirim() {
+  const teks = input.value.trim();
+  if (!teks || sibuk) return;
+  sibuk = true;
+  input.value = "";
+  tampil("u", teks);
+  riwayat.push({ role: "user", content: teks });
+  const el = tampil("b", "...");
+  try {
+    await muatOtak();
+    const pesan = [{ role: "system", content: PERSONA }, ...riwayat.slice(-10)];
+    const stream = await engine.chat.completions.create({
+      messages: pesan, stream: true, max_tokens: 300
+    });
+    let out = "";
+    for await (const ch of stream) {
+      out += ch.choices[0]?.delta?.content || "";
+      el.textContent = out;
+      chat.scrollTop = chat.scrollHeight;
+    }
+    riwayat.push({ role: "assistant", content: out });
+    localStorage.setItem("riwayat", JSON.stringify(riwayat.slice(-30)));
+  } catch (e) {
+    riwayat.pop();
+    el.textContent = "Error: " + e.message;
+  }
+  sibuk = false;
+}
+
+document.getElementById("kirim").onclick = kirim;
+input.onkeydown = e => { if (e.key === "Enter") kirim(); };
+</script>
+</body></html>
