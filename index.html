@@ -13,25 +13,31 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Biar gak scroll selayar-layar */
             background-color: #0b0c10;
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
         }
 
-        /* ----------------------------------------------------
-           1. CONTAINER LIVE2D (BAGIAN ATAS LAYAR)
-        ---------------------------------------------------- */
+        /* WRAPPER UTAMA SATU LAYAR FULL */
+        #app-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* 1. CONTAINER LIVE2D (BAGIAN ATAS: 50% LAYAR) */
         #live2d-container {
             width: 100%;
-            height: 52vh;
+            height: 50vh;
             position: relative;
             background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
             touch-action: none;
+            flex-shrink: 0;
         }
 
         #live2d-canvas {
@@ -42,48 +48,44 @@
 
         #ai-status {
             position: absolute;
-            top: 12px;
-            left: 12px;
+            top: 10px;
+            left: 10px;
             background: rgba(11, 12, 16, 0.85);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(102, 252, 241, 0.4);
             color: #66fcf1;
-            padding: 6px 14px;
-            border-radius: 20px;
+            padding: 4px 10px;
+            border-radius: 15px;
             font-size: 11px;
             font-weight: 600;
-            letter-spacing: 0.5px;
             z-index: 20;
         }
 
-        /* ----------------------------------------------------
-           2. CONTAINER CHAT & INPUT (BAGIAN BAWAH LAYAR)
-        ---------------------------------------------------- */
+        /* 2. CONTAINER CHAT UI (BAGIAN BAWAH: 50% LAYAR) */
         #chat-container {
-            height: 48vh;
+            width: 100%;
+            height: 50vh;
             background: #1f2833;
             border-top: 2px solid #45a29e;
-            border-radius: 24px 24px 0 0;
+            border-radius: 20px 20px 0 0;
             display: flex;
             flex-direction: column;
-            padding: 16px;
-            box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.8);
-            z-index: 10;
+            padding: 12px;
+            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.7);
+            flex-shrink: 0;
         }
 
-        /* AREA CHAT BAR (TEMPAT RIWAYAT PESAN) */
+        /* AREA RIWAYAT PESAN (CHAT BAR) */
         #chat-bar {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            padding-right: 6px;
-            margin-bottom: 14px;
-            scroll-behavior: smooth;
+            gap: 10px;
+            padding-right: 4px;
+            margin-bottom: 10px;
         }
 
-        /* Style Scrollbar Chat Bar */
         #chat-bar::-webkit-scrollbar {
             width: 4px;
         }
@@ -92,13 +94,13 @@
             border-radius: 4px;
         }
 
-        /* GELEMBUNG PESAN (BUBBLE CHAT) */
+        /* BUBBLE CHAT */
         .message {
             max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.5;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 13.5px;
+            line-height: 1.4;
             word-break: break-word;
         }
 
@@ -118,17 +120,19 @@
             border-bottom-left-radius: 2px;
         }
 
-        /* AREA INPUT & TOMBOL KIRIM */
+        /* AREA KOLOM NGETIK & BUTTON */
         .input-bar {
             display: flex;
-            gap: 10px;
-            align-items: center;
+            gap: 8px;
+            width: 100%;
+            height: 48px; /* Ukuran pasti */
         }
 
         #user-input {
             flex: 1;
-            padding: 14px 18px;
-            border-radius: 14px;
+            height: 100%;
+            padding: 0 14px;
+            border-radius: 12px;
             border: 1px solid #45a29e;
             background: #0b0c10;
             color: #ffffff;
@@ -138,12 +142,12 @@
 
         #user-input:focus {
             border-color: #66fcf1;
-            box-shadow: 0 0 10px rgba(102, 252, 241, 0.35);
         }
 
         #send-btn {
-            padding: 14px 20px;
-            border-radius: 14px;
+            height: 100%;
+            padding: 0 18px;
+            border-radius: 12px;
             border: none;
             background: #66fcf1;
             color: #0b0c10;
@@ -165,124 +169,35 @@
 </head>
 <body>
 
-    <!-- STATUS ENGINE AI -->
-    <div id="ai-status">Mika AI: Initializing...</div>
+    <div id="app-wrapper">
+        <!-- 1. LIVE2D HIYORI -->
+        <div id="live2d-container">
+            <div id="ai-status">Mika AI: Initializing...</div>
+            <canvas id="live2d-canvas"></canvas>
+        </div>
 
-    <!-- 1. TAMPILAN KARAKTER LIVE2D -->
-    <div id="live2d-container">
-        <canvas id="live2d-canvas"></canvas>
-    </div>
+        <!-- 2. CHAT UI (CHAT BAR + KOLOM INPUT) -->
+        <div id="chat-container">
+            <!-- CHAT BAR (TEMPAT BUBBLE CHAT) -->
+            <div id="chat-bar">
+                <div class="message ai-msg">
+                    <b>Mika:</b> Nah! Sekarang kolom ngetiknya udah nongol kan, Lek? 🍸🗿
+                </div>
+            </div>
 
-    <!-- 2. TAMPILAN CHAT BAR & INPUT BAR -->
-    <div id="chat-container">
-        <!-- CHAT BAR (RIWAYAT OBROLAN) -->
-        <div id="chat-bar">
-            <div class="message ai-msg">
-                <b>Mika:</b> Halo Lek! Hiyori dan Chat Bar udah siap nih. Ngetik apa aja di bawah ya! 🍸🗿
+            <!-- INPUT BAR (TEMPAT NGETIK) -->
+            <div class="input-bar">
+                <input type="text" id="user-input" placeholder="Ketik pesan di sini..." autocomplete="off">
+                <button id="send-btn">Kirim</button>
             </div>
         </div>
-
-        <!-- INPUT BAR (KOLOM NGETIK & KIRIM) -->
-        <div class="input-bar">
-            <input type="text" id="user-input" placeholder="Ketik pesan..." autocomplete="off">
-            <button id="send-btn">Kirim</button>
-        </div>
     </div>
 
-    <!-- 3. SCRIPT LOGIC LIVE2D & AI OFFLINE -->
+    <!-- SCRIPT LOGIC -->
     <script>
         const { Application, live2d } = PIXI;
         const { Live2DModel } = live2d;
 
         let mikaModel = null;
         
-        const statusEl = document.getElementById('ai-status');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        const chatBar = document.getElementById('chat-bar');
-
-        // A. INITIALIZE LIVE2D
-        async function initLive2D() {
-            try {
-                const app = new Application({
-                    view: document.getElementById('live2d-canvas'),
-                    transparent: true,
-                    autoStart: true,
-                    resizeTo: document.getElementById('live2d-container')
-                });
-
-                const modelUrl = './live2d/hiyori_ja01/hiyori_free/runtime/hiyori_free_t08.model3.json';
-                mikaModel = await Live2DModel.from(modelUrl);
-                app.stage.addChild(mikaModel);
-
-                mikaModel.scale.set(0.17);
-                mikaModel.anchor.set(0.5, 0.5);
-                mikaModel.x = app.screen.width / 2;
-                mikaModel.y = app.screen.height / 2 + 35;
-                mikaModel.autoInteract = true;
-
-                statusEl.innerText = "Mika AI: Live2D Ready";
-            } catch (err) {
-                console.error("Gagal load Live2D:", err);
-                statusEl.innerText = "Live2D Error";
-            }
-        }
-
-        initLive2D();
-
-        // B. TRIGGER HIYORI PAS NGETIK
-        userInput.addEventListener('input', () => {
-            if (mikaModel) mikaModel.motion('TapBody');
-        });
-
-        // C. LOGIC KIRIM PESAN KE CHAT BAR
-        async function handleSendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            // Tampilkan pesan user ke Chat Bar
-            appendMessage('User', text, 'user-msg');
-            userInput.value = '';
-
-            if (mikaModel) mikaModel.motion('TapBody');
-
-            statusEl.innerText = "Mika AI: Thinking (1.5B)...";
-            const aiMessageDiv = appendMessage('Mika', '...', 'ai-msg');
-            const textSpan = aiMessageDiv.querySelector('.text-body');
-
-            try {
-                // ==========================================================
-                // ⚠️ SKRIP OFFLINE MODEL 1.5B KAMU BISA DIHUBUNGKAN DI SINI
-                // ==========================================================
-                
-                let aiReplyText = "Model 1.5B siap merespon pesan kamu di Chat Bar, Lek!";
-
-                textSpan.innerText = aiReplyText;
-                statusEl.innerText = "Mika AI: Ready";
-
-                if (mikaModel) mikaModel.motion('TapBody');
-
-            } catch (error) {
-                console.error("AI Error:", error);
-                textSpan.innerText = "Error memproses balasan AI.";
-                statusEl.innerText = "AI Error";
-            }
-        }
-
-        // FUNGSI NAMBAH BALASAN KE CHAT BAR
-        function appendMessage(sender, text, className) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${className}`;
-            msgDiv.innerHTML = `<b>${sender}:</b> <span class="text-body">${text}</span>`;
-            chatBar.appendChild(msgDiv);
-            chatBar.scrollTop = chatBar.scrollHeight; // Auto-scroll ke bawah
-            return msgDiv;
-        }
-
-        sendBtn.addEventListener('click', handleSendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSendMessage();
-        });
-    </script>
-</body>
-</html>
+        const status
