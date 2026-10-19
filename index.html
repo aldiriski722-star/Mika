@@ -2,73 +2,318 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mika AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mika AI Chatbot</title>
     
-    <!-- CSS / Style Kamu -->
     <style>
-        /* Style UI Chat & Canvas */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #0b0c10;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ----------------------------------------------------
+           1. CONTAINER LIVE2D (BAGIAN ATAS)
+        ---------------------------------------------------- */
+        #live2d-container {
+            width: 100%;
+            height: 55vh;
+            position: relative;
+            background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
+            touch-action: none;
+        }
+
+        #live2d-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Status Engine AI (Loading Model 1.5B) */
+        #ai-status {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(11, 12, 16, 0.75);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(102, 252, 241, 0.3);
+            color: #66fcf1;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            z-index: 5;
+        }
+
+        /* ----------------------------------------------------
+           2. CONTAINER CHAT UI (BAGIAN BAWAH)
+        ---------------------------------------------------- */
+        #chat-container {
+            height: 45vh;
+            background: #1f2833;
+            border-top: 1px solid #45a29e;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7);
+            z-index: 10;
+        }
+
+        #chat-history {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
+            margin-bottom: 12px;
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        #chat-history::-webkit-scrollbar {
+            width: 4px;
+        }
+        #chat-history::-webkit-scrollbar-thumb {
+            background: #45a29e;
+            border-radius: 4px;
+        }
+
+        .message {
+            max-width: 82%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 13.5px;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .user-msg {
+            align-self: flex-end;
+            background: #45a29e;
+            color: #0b0c10;
+            font-weight: 500;
+            border-bottom-right-radius: 2px;
+        }
+
+        .ai-msg {
+            align-self: flex-start;
+            background: #0b0c10;
+            color: #c5c6c7;
+            border: 1px solid #1f2833;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* INPUT BOX & SEND BUTTON */
+        .input-box {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #45a29e;
+            background: #0b0c10;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        #user-input:focus {
+            border-color: #66fcf1;
+            box-shadow: 0 0 8px rgba(102, 252, 241, 0.3);
+        }
+
+        #send-btn {
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: none;
+            background: #66fcf1;
+            color: #0b0c10;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        #send-btn:active {
+            transform: scale(0.95);
+            background: #45a29e;
+        }
+
+        #send-btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
     </style>
 
-    <!-- CDN Library (Ditaruh di Head) -->
+    <!-- ----------------------------------------------------
+       3. DEPENDENCIES / LIBRARY LIVE2D (PIXIJS)
+    ---------------------------------------------------- -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
     <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js"></script>
 </head>
 <body>
 
-    <!-- HTML Elemen UI -->
+    <!-- STATUS INDICATOR AI -->
+    <div id="ai-status">Mika AI: Initializing...</div>
+
+    <!-- AREA LIVE2D KARAKTER -->
     <div id="live2d-container">
         <canvas id="live2d-canvas"></canvas>
     </div>
 
+    <!-- AREA INTERFASE CHAT -->
     <div id="chat-container">
-        <div id="chat-history"></div>
-        <input type="text" id="user-input">
-        <button id="send-btn">Kirim</button>
+        <div id="chat-history">
+            <div class="message ai-msg">
+                <b>Mika:</b> Halo Lek! Hiyori udah di-load nih. Yuk tes ngobrol! 🍸🗿
+            </div>
+        </div>
+        <div class="input-box">
+            <input type="text" id="user-input" placeholder="Ketik pesan di sini..." autocomplete="off">
+            <button id="send-btn">Kirim</button>
+        </div>
     </div>
 
-    <!-- ⬇️ NAH SCRIPT JS DITARUH DI SINI (SEBELUM </body>) ⬇️ -->
+    <!-- ----------------------------------------------------
+       4. LOGIC ENGINE (LIVE2D + AI OFFLINE INTEGRATION)
+    ---------------------------------------------------- -->
     <script>
         const { Application, live2d } = PIXI;
         const { Live2DModel } = live2d;
 
         let mikaModel = null;
+        const statusEl = document.getElementById('ai-status');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatHistory = document.getElementById('chat-history');
 
+        // ====================================================
+        // A. INITIALIZE LIVE2D MODEL (HIYORI)
+        // ====================================================
         async function initLive2D() {
-            const app = new Application({
-                view: document.getElementById('live2d-canvas'),
-                transparent: true,
-                autoStart: true,
-                resizeTo: document.getElementById('live2d-container')
-            });
-
-            // PATH MODEL HIYORI KAMU DI SINI:
-            const modelUrl = './live2d/hiyori_ja01/hiyori_free/runtime/hiyori_free_t08.model3.json';
-
             try {
+                const app = new Application({
+                    view: document.getElementById('live2d-canvas'),
+                    transparent: true,
+                    autoStart: true,
+                    resizeTo: document.getElementById('live2d-container')
+                });
+
+                // Path lengkap file model3.json Hiyori di repo kamu
+                const modelUrl = './live2d/hiyori_ja01/hiyori_free/runtime/hiyori_free_t08.model3.json';
+
                 mikaModel = await Live2DModel.from(modelUrl);
                 app.stage.addChild(mikaModel);
 
-                mikaModel.scale.set(0.18);
+                // Set Skala dan Posisi
+                mikaModel.scale.set(0.17);
                 mikaModel.anchor.set(0.5, 0.5);
                 mikaModel.x = app.screen.width / 2;
-                mikaModel.y = app.screen.height / 2 + 60;
+                mikaModel.y = app.screen.height / 2 + 35;
+
+                // Fitur Tracking Mata/Kepala Otomatis Mengikuti Touch Layar HP
                 mikaModel.autoInteract = true;
 
+                statusEl.innerText = "Mika AI: Live2D Ready";
+
             } catch (err) {
-                console.error("Gagal load Hiyori:", err);
+                console.error("Gagal memuat model Live2D:", err);
+                statusEl.innerText = "Live2D Error (Cek Console)";
             }
         }
 
         initLive2D();
 
-        // Trigger Gerakan Pas User Ngetik
-        const userInput = document.getElementById('user-input');
+        // ====================================================
+        // B. INTERAKSI INPUT (USER NGETIK DI KEYBOARD HP)
+        // ====================================================
         userInput.addEventListener('input', () => {
+            if (mikaModel) {
+                // Trigger motion 'TapBody' atau 'Idle' pas keyboard diketik
+                mikaModel.motion('TapBody');
+            }
+        });
+
+        // ====================================================
+        // C. LOGIC PENGIRIMAN PESAN & INFERENSI AI 1.5B
+        // ====================================================
+        async function handleSendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // 1. Tampilkan Pesan User
+            appendMessage('User', text, 'user-msg');
+            userInput.value = '';
+
+            // 2. Trigger Reaksi Hiyori saat user kirim pesan
             if (mikaModel) {
                 mikaModel.motion('TapBody');
             }
+
+            // 3. Status Loading Mikir AI
+            statusEl.innerText = "Mika AI: Thinking (1.5B Model)...";
+            const aiMessageDiv = appendMessage('Mika', '...', 'ai-msg');
+
+            try {
+                // --------------------------------------------------
+                // DILANJUTKAN DENGAN SKRIP ENGINE OFFLINE KAMU:
+                // Masukkan pemanggilan fungsi generate/inferensi model 1.5B kamu di sini
+                // --------------------------------------------------
+                
+                // SIMULASI RESPON AI (Nanti diganti dengan stream output asli model 1.5B kamu)
+                let simulatedResponse = "Pesan terkirim! Otak offline 1.5B siap merespon pertanyaanmu, Lek.";
+                
+                // Gerakkan mulut/motion Hiyori saat AI mulai membalas
+                if (mikaModel) {
+                    mikaModel.motion('TapBody');
+                }
+
+                aiMessageDiv.querySelector('.text-body').innerText = simulatedResponse;
+                statusEl.innerText = "Mika AI: Ready";
+
+            } catch (error) {
+                console.error("Error AI Engine:", error);
+                aiMessageDiv.querySelector('.text-body').innerText = "Maaf Lek, terjadi kesalahan pada engine AI.";
+                statusEl.innerText = "Mika AI: Error";
+            }
+        }
+
+        // ====================================================
+        // D. HELPER FUNCTIONS
+        // ====================================================
+        function appendMessage(sender, text, className) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${className}`;
+            msgDiv.innerHTML = `<b>${sender}:</b> <span class="text-body">${text}</span>`;
+            chatHistory.appendChild(msgDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return msgDiv;
+        }
+
+        sendBtn.addEventListener('click', handleSendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSendMessage();
         });
     </script>
 </body>
