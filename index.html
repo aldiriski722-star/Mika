@@ -24,11 +24,11 @@
         }
 
         /* ----------------------------------------------------
-           1. CONTAINER LIVE2D (BAGIAN ATAS)
+           1. CONTAINER LIVE2D (BAGIAN ATAS LAYAR)
         ---------------------------------------------------- */
         #live2d-container {
             width: 100%;
-            height: 55vh;
+            height: 52vh;
             position: relative;
             background: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
             touch-action: none;
@@ -40,63 +40,65 @@
             display: block;
         }
 
-        /* Status Engine AI (Loading Model 1.5B) */
         #ai-status {
             position: absolute;
             top: 12px;
             left: 12px;
-            background: rgba(11, 12, 16, 0.75);
+            background: rgba(11, 12, 16, 0.85);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(102, 252, 241, 0.3);
+            border: 1px solid rgba(102, 252, 241, 0.4);
             color: #66fcf1;
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.5px;
-            z-index: 5;
+            z-index: 20;
         }
 
         /* ----------------------------------------------------
-           2. CONTAINER CHAT UI (BAGIAN BAWAH)
+           2. CONTAINER CHAT & INPUT (BAGIAN BAWAH LAYAR)
         ---------------------------------------------------- */
         #chat-container {
-            height: 45vh;
+            height: 48vh;
             background: #1f2833;
-            border-top: 1px solid #45a29e;
-            border-radius: 20px 20px 0 0;
+            border-top: 2px solid #45a29e;
+            border-radius: 24px 24px 0 0;
             display: flex;
             flex-direction: column;
-            padding: 14px;
-            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7);
+            padding: 16px;
+            box-shadow: 0 -10px 35px rgba(0, 0, 0, 0.8);
             z-index: 10;
         }
 
-        #chat-history {
+        /* AREA CHAT BAR (TEMPAT RIWAYAT PESAN) */
+        #chat-bar {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            padding-right: 4px;
-            margin-bottom: 12px;
+            gap: 12px;
+            padding-right: 6px;
+            margin-bottom: 14px;
             scroll-behavior: smooth;
         }
 
-        #chat-history::-webkit-scrollbar {
+        /* Style Scrollbar Chat Bar */
+        #chat-bar::-webkit-scrollbar {
             width: 4px;
         }
-        #chat-history::-webkit-scrollbar-thumb {
+        #chat-bar::-webkit-scrollbar-thumb {
             background: #45a29e;
             border-radius: 4px;
         }
 
+        /* GELEMBUNG PESAN (BUBBLE CHAT) */
         .message {
-            max-width: 82%;
-            padding: 10px 14px;
-            border-radius: 14px;
-            font-size: 13.5px;
-            line-height: 1.45;
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.5;
             word-break: break-word;
         }
 
@@ -104,7 +106,7 @@
             align-self: flex-end;
             background: #45a29e;
             color: #0b0c10;
-            font-weight: 500;
+            font-weight: 600;
             border-bottom-right-radius: 2px;
         }
 
@@ -112,20 +114,21 @@
             align-self: flex-start;
             background: #0b0c10;
             color: #c5c6c7;
-            border: 1px solid #1f2833;
+            border: 1px solid #323846;
             border-bottom-left-radius: 2px;
         }
 
-        .input-box {
+        /* AREA INPUT & TOMBOL KIRIM */
+        .input-bar {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
         }
 
         #user-input {
             flex: 1;
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 14px 18px;
+            border-radius: 14px;
             border: 1px solid #45a29e;
             background: #0b0c10;
             color: #ffffff;
@@ -135,12 +138,12 @@
 
         #user-input:focus {
             border-color: #66fcf1;
-            box-shadow: 0 0 8px rgba(102, 252, 241, 0.3);
+            box-shadow: 0 0 10px rgba(102, 252, 241, 0.35);
         }
 
         #send-btn {
-            padding: 12px 18px;
-            border-radius: 12px;
+            padding: 14px 20px;
+            border-radius: 14px;
             border: none;
             background: #66fcf1;
             color: #0b0c10;
@@ -162,41 +165,43 @@
 </head>
 <body>
 
-    <!-- STATUS INDICATOR -->
+    <!-- STATUS ENGINE AI -->
     <div id="ai-status">Mika AI: Initializing...</div>
 
-    <!-- AREA LIVE2D -->
+    <!-- 1. TAMPILAN KARAKTER LIVE2D -->
     <div id="live2d-container">
         <canvas id="live2d-canvas"></canvas>
     </div>
 
-    <!-- AREA CHAT UI -->
+    <!-- 2. TAMPILAN CHAT BAR & INPUT BAR -->
     <div id="chat-container">
-        <div id="chat-history">
+        <!-- CHAT BAR (RIWAYAT OBROLAN) -->
+        <div id="chat-bar">
             <div class="message ai-msg">
-                <b>Mika:</b> Halo Lek! Otak 1.5B & Hiyori siap dimuat. 🍸🗿
+                <b>Mika:</b> Halo Lek! Hiyori dan Chat Bar udah siap nih. Ngetik apa aja di bawah ya! 🍸🗿
             </div>
         </div>
-        <div class="input-box">
-            <input type="text" id="user-input" placeholder="Ketik pesan di sini..." autocomplete="off">
+
+        <!-- INPUT BAR (KOLOM NGETIK & KIRIM) -->
+        <div class="input-bar">
+            <input type="text" id="user-input" placeholder="Ketik pesan..." autocomplete="off">
             <button id="send-btn">Kirim</button>
         </div>
     </div>
 
-    <!-- SCRIPT UTAMA: LIVE2D + OTAK OFFLINE -->
+    <!-- 3. SCRIPT LOGIC LIVE2D & AI OFFLINE -->
     <script>
         const { Application, live2d } = PIXI;
         const { Live2DModel } = live2d;
 
         let mikaModel = null;
-        let aiEngine = null; // Slot variabel otak offline kamu
         
         const statusEl = document.getElementById('ai-status');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
-        const chatHistory = document.getElementById('chat-history');
+        const chatBar = document.getElementById('chat-bar');
 
-        // 1. LOAD LIVE2D
+        // A. INITIALIZE LIVE2D
         async function initLive2D() {
             try {
                 const app = new Application({
@@ -225,54 +230,32 @@
 
         initLive2D();
 
-        // 2. LOAD OTAK OFFLINE (Contoh Inisialisasi Model 1.5B Kamu)
-        async function initAIOffline() {
-            try {
-                statusEl.innerText = "Mika AI: Loading 1.5B Model (Mohon tunggu)...";
-                
-                // ==========================================================
-                // ⚠️ TARUH SKRIP INIT ENGINE OFFLINE LU DI SINI 
-                // (Contoh jika pakai WebLLM / Transformers.js / ONNX)
-                // ==========================================================
-                // aiEngine = await CreateMLCEngine("Qwen1.5-1.5B-Chat-q4f32_1-MLC");
-                
-                statusEl.innerText = "Mika AI: 1.5B Ready (Offline)";
-            } catch (err) {
-                console.error("Gagal load AI Model:", err);
-                statusEl.innerText = "AI Model Error / RAM Terbatas";
-            }
-        }
-
-        // Panggil fungsi load AI offline saat halaman dibuka
-        initAIOffline();
-
-        // 3. TRIGGER KETIKAN
+        // B. TRIGGER HIYORI PAS NGETIK
         userInput.addEventListener('input', () => {
             if (mikaModel) mikaModel.motion('TapBody');
         });
 
-        // 4. KIRIM PESAN & PROSES AI
+        // C. LOGIC KIRIM PESAN KE CHAT BAR
         async function handleSendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
 
+            // Tampilkan pesan user ke Chat Bar
             appendMessage('User', text, 'user-msg');
             userInput.value = '';
 
             if (mikaModel) mikaModel.motion('TapBody');
 
-            statusEl.innerText = "Mika AI: Thinking...";
+            statusEl.innerText = "Mika AI: Thinking (1.5B)...";
             const aiMessageDiv = appendMessage('Mika', '...', 'ai-msg');
             const textSpan = aiMessageDiv.querySelector('.text-body');
 
             try {
                 // ==========================================================
-                // ⚠️ TARUH SKRIP GENERATE / STREAMING JAWABAN AI LU DI SINI
+                // ⚠️ SKRIP OFFLINE MODEL 1.5B KAMU BISA DIHUBUNGKAN DI SINI
                 // ==========================================================
-                // const reply = await aiEngine.chat.completions.create({ messages: [...] });
-                // let aiReplyText = reply.choices[0].message.content;
-
-                let aiReplyText = "Halo Lek! Otak 1.5B offline kamu sukses terhubung ke web ini."; // Dummy respon sebelum dipasok engine lu
+                
+                let aiReplyText = "Model 1.5B siap merespon pesan kamu di Chat Bar, Lek!";
 
                 textSpan.innerText = aiReplyText;
                 statusEl.innerText = "Mika AI: Ready";
@@ -281,17 +264,18 @@
 
             } catch (error) {
                 console.error("AI Error:", error);
-                textSpan.innerText = "Gagal memproses AI.";
+                textSpan.innerText = "Error memproses balasan AI.";
                 statusEl.innerText = "AI Error";
             }
         }
 
+        // FUNGSI NAMBAH BALASAN KE CHAT BAR
         function appendMessage(sender, text, className) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${className}`;
             msgDiv.innerHTML = `<b>${sender}:</b> <span class="text-body">${text}</span>`;
-            chatHistory.appendChild(msgDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
+            chatBar.appendChild(msgDiv);
+            chatBar.scrollTop = chatBar.scrollHeight; // Auto-scroll ke bawah
             return msgDiv;
         }
 
