@@ -83,7 +83,6 @@
             scroll-behavior: smooth;
         }
 
-        /* Custom Scrollbar */
         #chat-history::-webkit-scrollbar {
             width: 4px;
         }
@@ -117,7 +116,6 @@
             border-bottom-left-radius: 2px;
         }
 
-        /* INPUT BOX & SEND BUTTON */
         .input-box {
             display: flex;
             gap: 8px;
@@ -133,7 +131,6 @@
             color: #ffffff;
             font-size: 14px;
             outline: none;
-            transition: all 0.2s ease;
         }
 
         #user-input:focus {
@@ -150,43 +147,34 @@
             font-weight: bold;
             font-size: 14px;
             cursor: pointer;
-            transition: background 0.2s ease;
         }
 
         #send-btn:active {
             transform: scale(0.95);
             background: #45a29e;
         }
-
-        #send-btn:disabled {
-            background: #333;
-            color: #666;
-            cursor: not-allowed;
-        }
     </style>
 
-    <!-- ----------------------------------------------------
-       3. DEPENDENCIES / LIBRARY LIVE2D (PIXIJS)
-    ---------------------------------------------------- -->
+    <!-- LIBRARY LIVE2D (PIXIJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
     <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js"></script>
 </head>
 <body>
 
-    <!-- STATUS INDICATOR AI -->
+    <!-- STATUS INDICATOR -->
     <div id="ai-status">Mika AI: Initializing...</div>
 
-    <!-- AREA LIVE2D KARAKTER -->
+    <!-- AREA LIVE2D -->
     <div id="live2d-container">
         <canvas id="live2d-canvas"></canvas>
     </div>
 
-    <!-- AREA INTERFASE CHAT -->
+    <!-- AREA CHAT UI -->
     <div id="chat-container">
         <div id="chat-history">
             <div class="message ai-msg">
-                <b>Mika:</b> Halo Lek! Hiyori udah di-load nih. Yuk tes ngobrol! 🍸🗿
+                <b>Mika:</b> Halo Lek! Otak 1.5B & Hiyori siap dimuat. 🍸🗿
             </div>
         </div>
         <div class="input-box">
@@ -195,22 +183,20 @@
         </div>
     </div>
 
-    <!-- ----------------------------------------------------
-       4. LOGIC ENGINE (LIVE2D + AI OFFLINE INTEGRATION)
-    ---------------------------------------------------- -->
+    <!-- SCRIPT UTAMA: LIVE2D + OTAK OFFLINE -->
     <script>
         const { Application, live2d } = PIXI;
         const { Live2DModel } = live2d;
 
         let mikaModel = null;
+        let aiEngine = null; // Slot variabel otak offline kamu
+        
         const statusEl = document.getElementById('ai-status');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const chatHistory = document.getElementById('chat-history');
 
-        // ====================================================
-        // A. INITIALIZE LIVE2D MODEL (HIYORI)
-        // ====================================================
+        // 1. LOAD LIVE2D
         async function initLive2D() {
             try {
                 const app = new Application({
@@ -220,88 +206,86 @@
                     resizeTo: document.getElementById('live2d-container')
                 });
 
-                // Path lengkap file model3.json Hiyori di repo kamu
                 const modelUrl = './live2d/hiyori_ja01/hiyori_free/runtime/hiyori_free_t08.model3.json';
-
                 mikaModel = await Live2DModel.from(modelUrl);
                 app.stage.addChild(mikaModel);
 
-                // Set Skala dan Posisi
                 mikaModel.scale.set(0.17);
                 mikaModel.anchor.set(0.5, 0.5);
                 mikaModel.x = app.screen.width / 2;
                 mikaModel.y = app.screen.height / 2 + 35;
-
-                // Fitur Tracking Mata/Kepala Otomatis Mengikuti Touch Layar HP
                 mikaModel.autoInteract = true;
 
                 statusEl.innerText = "Mika AI: Live2D Ready";
-
             } catch (err) {
-                console.error("Gagal memuat model Live2D:", err);
-                statusEl.innerText = "Live2D Error (Cek Console)";
+                console.error("Gagal load Live2D:", err);
+                statusEl.innerText = "Live2D Error";
             }
         }
 
         initLive2D();
 
-        // ====================================================
-        // B. INTERAKSI INPUT (USER NGETIK DI KEYBOARD HP)
-        // ====================================================
-        userInput.addEventListener('input', () => {
-            if (mikaModel) {
-                // Trigger motion 'TapBody' atau 'Idle' pas keyboard diketik
-                mikaModel.motion('TapBody');
+        // 2. LOAD OTAK OFFLINE (Contoh Inisialisasi Model 1.5B Kamu)
+        async function initAIOffline() {
+            try {
+                statusEl.innerText = "Mika AI: Loading 1.5B Model (Mohon tunggu)...";
+                
+                // ==========================================================
+                // ⚠️ TARUH SKRIP INIT ENGINE OFFLINE LU DI SINI 
+                // (Contoh jika pakai WebLLM / Transformers.js / ONNX)
+                // ==========================================================
+                // aiEngine = await CreateMLCEngine("Qwen1.5-1.5B-Chat-q4f32_1-MLC");
+                
+                statusEl.innerText = "Mika AI: 1.5B Ready (Offline)";
+            } catch (err) {
+                console.error("Gagal load AI Model:", err);
+                statusEl.innerText = "AI Model Error / RAM Terbatas";
             }
+        }
+
+        // Panggil fungsi load AI offline saat halaman dibuka
+        initAIOffline();
+
+        // 3. TRIGGER KETIKAN
+        userInput.addEventListener('input', () => {
+            if (mikaModel) mikaModel.motion('TapBody');
         });
 
-        // ====================================================
-        // C. LOGIC PENGIRIMAN PESAN & INFERENSI AI 1.5B
-        // ====================================================
+        // 4. KIRIM PESAN & PROSES AI
         async function handleSendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
 
-            // 1. Tampilkan Pesan User
             appendMessage('User', text, 'user-msg');
             userInput.value = '';
 
-            // 2. Trigger Reaksi Hiyori saat user kirim pesan
-            if (mikaModel) {
-                mikaModel.motion('TapBody');
-            }
+            if (mikaModel) mikaModel.motion('TapBody');
 
-            // 3. Status Loading Mikir AI
-            statusEl.innerText = "Mika AI: Thinking (1.5B Model)...";
+            statusEl.innerText = "Mika AI: Thinking...";
             const aiMessageDiv = appendMessage('Mika', '...', 'ai-msg');
+            const textSpan = aiMessageDiv.querySelector('.text-body');
 
             try {
-                // --------------------------------------------------
-                // DILANJUTKAN DENGAN SKRIP ENGINE OFFLINE KAMU:
-                // Masukkan pemanggilan fungsi generate/inferensi model 1.5B kamu di sini
-                // --------------------------------------------------
-                
-                // SIMULASI RESPON AI (Nanti diganti dengan stream output asli model 1.5B kamu)
-                let simulatedResponse = "Pesan terkirim! Otak offline 1.5B siap merespon pertanyaanmu, Lek.";
-                
-                // Gerakkan mulut/motion Hiyori saat AI mulai membalas
-                if (mikaModel) {
-                    mikaModel.motion('TapBody');
-                }
+                // ==========================================================
+                // ⚠️ TARUH SKRIP GENERATE / STREAMING JAWABAN AI LU DI SINI
+                // ==========================================================
+                // const reply = await aiEngine.chat.completions.create({ messages: [...] });
+                // let aiReplyText = reply.choices[0].message.content;
 
-                aiMessageDiv.querySelector('.text-body').innerText = simulatedResponse;
+                let aiReplyText = "Halo Lek! Otak 1.5B offline kamu sukses terhubung ke web ini."; // Dummy respon sebelum dipasok engine lu
+
+                textSpan.innerText = aiReplyText;
                 statusEl.innerText = "Mika AI: Ready";
 
+                if (mikaModel) mikaModel.motion('TapBody');
+
             } catch (error) {
-                console.error("Error AI Engine:", error);
-                aiMessageDiv.querySelector('.text-body').innerText = "Maaf Lek, terjadi kesalahan pada engine AI.";
-                statusEl.innerText = "Mika AI: Error";
+                console.error("AI Error:", error);
+                textSpan.innerText = "Gagal memproses AI.";
+                statusEl.innerText = "AI Error";
             }
         }
 
-        // ====================================================
-        // D. HELPER FUNCTIONS
-        // ====================================================
         function appendMessage(sender, text, className) {
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${className}`;
