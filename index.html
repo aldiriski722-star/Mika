@@ -4,91 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mika AI</title>
+    
+    <!-- CSS / Style Kamu -->
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background-color: #0d0e15;
-            color: white;
-            font-family: sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Area Tampilan Live2D */
-        #live2d-container {
-            width: 100%;
-            height: 65vh;
-            position: relative;
-        }
-        #live2d-canvas {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Area Chatbox UI */
-        #chat-container {
-            height: 35vh;
-            background: rgba(22, 24, 38, 0.9);
-            border-top: 1px solid #2a2d45;
-            display: flex;
-            flex-direction: column;
-            padding: 12px;
-            border-radius: 20px 20px 0 0;
-        }
-        #chat-history {
-            flex: 1;
-            overflow-y: auto;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .input-box {
-            display: flex;
-            gap: 8px;
-        }
-        input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid #3b3e5e;
-            background: #181a29;
-            color: white;
-            outline: none;
-        }
-        button {
-            padding: 12px 18px;
-            border-radius: 10px;
-            border: none;
-            background: #6c5ce7;
-            color: white;
-            font-weight: bold;
-        }
+        /* Style UI Chat & Canvas */
     </style>
 
-    <!-- Library Live2D & PixiJS via CDN -->
+    <!-- CDN Library (Ditaruh di Head) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
     <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js"></script>
 </head>
 <body>
 
-    <!-- Container Model Hiyori -->
+    <!-- HTML Elemen UI -->
     <div id="live2d-container">
         <canvas id="live2d-canvas"></canvas>
     </div>
 
-    <!-- Interface Chat UI -->
     <div id="chat-container">
-        <div id="chat-history">
-            <div><b>Mika:</b> Halo Lek! Hiyori udah siap nih.</div>
-        </div>
-        <div class="input-box">
-            <input type="text" id="user-input" placeholder="Ketik pesan..." autocomplete="off">
-            <button id="send-btn">Kirim</button>
-        </div>
+        <div id="chat-history"></div>
+        <input type="text" id="user-input">
+        <button id="send-btn">Kirim</button>
     </div>
 
+    <!-- ⬇️ NAH SCRIPT JS DITARUH DI SINI (SEBELUM </body>) ⬇️ -->
     <script>
         const { Application, live2d } = PIXI;
         const { Live2DModel } = live2d;
@@ -103,20 +43,17 @@
                 resizeTo: document.getElementById('live2d-container')
             });
 
-            // Path ke file Hiyori di repo kamu
-            const modelUrl = './live2d/hiyori/Hiyori.model3.json';
+            // PATH MODEL HIYORI KAMU DI SINI:
+            const modelUrl = './live2d/hiyori_ja01/hiyori_free/runtime/hiyori_free_t08.model3.json';
 
             try {
                 mikaModel = await Live2DModel.from(modelUrl);
                 app.stage.addChild(mikaModel);
 
-                // Atur Posisi & Ukuran di layar HP
                 mikaModel.scale.set(0.18);
                 mikaModel.anchor.set(0.5, 0.5);
                 mikaModel.x = app.screen.width / 2;
                 mikaModel.y = app.screen.height / 2 + 60;
-
-                // Kepala/mata otomatis ngikutin sentuhan jari di HP
                 mikaModel.autoInteract = true;
 
             } catch (err) {
@@ -130,7 +67,6 @@
         const userInput = document.getElementById('user-input');
         userInput.addEventListener('input', () => {
             if (mikaModel) {
-                // Panggil motion bawaan Hiyori pas kamu pencet keyboard HP
                 mikaModel.motion('TapBody');
             }
         });
