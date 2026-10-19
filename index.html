@@ -16,13 +16,13 @@
         html, body {
             width: 100%;
             height: 100%;
-            overflow: hidden; /* Biar gak scroll selayar-layar */
+            overflow: hidden;
             background-color: #0b0c10;
             color: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
-        /* WRAPPER UTAMA SATU LAYAR FULL */
+        /* LAYOUT UTAMA SATU LAYAR */
         #app-wrapper {
             display: flex;
             flex-direction: column;
@@ -30,7 +30,7 @@
             height: 100vh;
         }
 
-        /* 1. CONTAINER LIVE2D (BAGIAN ATAS: 50% LAYAR) */
+        /* 1. CONTAINER LIVE2D (ATAS: 50%) */
         #live2d-container {
             width: 100%;
             height: 50vh;
@@ -61,7 +61,7 @@
             z-index: 20;
         }
 
-        /* 2. CONTAINER CHAT UI (BAGIAN BAWAH: 50% LAYAR) */
+        /* 2. CONTAINER CHAT UI (BAWAH: 50%) */
         #chat-container {
             width: 100%;
             height: 50vh;
@@ -75,7 +75,7 @@
             flex-shrink: 0;
         }
 
-        /* AREA RIWAYAT PESAN (CHAT BAR) */
+        /* RIWAYAT PESAN (CHAT BAR) */
         #chat-bar {
             flex: 1;
             overflow-y: auto;
@@ -94,7 +94,6 @@
             border-radius: 4px;
         }
 
-        /* BUBBLE CHAT */
         .message {
             max-width: 85%;
             padding: 10px 14px;
@@ -120,12 +119,13 @@
             border-bottom-left-radius: 2px;
         }
 
-        /* AREA KOLOM NGETIK & BUTTON */
+        /* INPUT BAR (KOLOM NGETIK & TOMBOL KIRIM) - DIJAMIN NONGOL */
         .input-bar {
             display: flex;
             gap: 8px;
             width: 100%;
-            height: 48px; /* Ukuran pasti */
+            height: 48px;
+            flex-shrink: 0;
         }
 
         #user-input {
@@ -176,16 +176,15 @@
             <canvas id="live2d-canvas"></canvas>
         </div>
 
-        <!-- 2. CHAT UI (CHAT BAR + KOLOM INPUT) -->
+        <!-- 2. CHAT UI (CHAT BAR + INPUT BAR) -->
         <div id="chat-container">
-            <!-- CHAT BAR (TEMPAT BUBBLE CHAT) -->
             <div id="chat-bar">
                 <div class="message ai-msg">
-                    <b>Mika:</b> Nah! Sekarang kolom ngetiknya udah nongol kan, Lek? 🍸🗿
+                    <b>Mika:</b> Halo Lek! Hiyori, Chat Bar, dan kolom ngetik udah lengkap di sini. 🍸🗿
                 </div>
             </div>
 
-            <!-- INPUT BAR (TEMPAT NGETIK) -->
+            <!-- KOLOM NGETIK (INPUT BAR) -->
             <div class="input-bar">
                 <input type="text" id="user-input" placeholder="Ketik pesan di sini..." autocomplete="off">
                 <button id="send-btn">Kirim</button>
@@ -193,11 +192,117 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIC -->
+    <!-- SCRIPT UTAMA -->
     <script>
         const { Application, live2d } = PIXI;
         const { Live2DModel } = live2d;
 
         let mikaModel = null;
-        
-        const status
+        let aiEngine = null; // SLOT OTAK OFFLINE 1.5B
+
+        const statusEl = document.getElementById('ai-status');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatBar = document.getElementById('chat-bar');
+
+        // A. INISIALISASI LIVE2D HIYORI
+        async function initLive2D() {
+            try {
+                const app = new Application({
+                    view: document.getElementById('live2d-canvas'),
+                    transparent: true,
+                    autoStart: true,
+                    resizeTo: document.getElementById('live2d-container')
+                });
+
+                const modelUrl = './live2d/hiyori_ja01/hiyori_free/runtime/hiyori_free_t08.model3.json';
+                mikaModel = await Live2DModel.from(modelUrl);
+                app.stage.addChild(mikaModel);
+
+                mikaModel.scale.set(0.16);
+                mikaModel.anchor.set(0.5, 0.5);
+                mikaModel.x = app.screen.width / 2;
+                mikaModel.y = app.screen.height / 2 + 20;
+                mikaModel.autoInteract = true;
+
+                statusEl.innerText = "Mika AI: Live2D Ready";
+            } catch (err) {
+                console.error("Gagal load Live2D:", err);
+                statusEl.innerText = "Live2D Error";
+            }
+        }
+
+        initLive2D();
+
+        // B. INISIALISASI MODEL OFFLINE 1.5B (SILAKAN TARUH SKRIP LU DI SINI)
+        async function initAIOffline() {
+            try {
+                statusEl.innerText = "Mika AI: Loading 1.5B Model...";
+                
+                // ==========================================================
+                // ⚠️ TEMPEL SKRIP LOAD ENGINE / MODEL OFFLINE 1.5B LU DI SINI
+                // ==========================================================
+                
+                statusEl.innerText = "Mika AI: Ready (Offline)";
+            } catch (err) {
+                console.error("Gagal load AI:", err);
+                statusEl.innerText = "AI Load Error";
+            }
+        }
+
+        initAIOffline();
+
+        // C. TRIGGER GERAKAN PAS NGETIK
+        userInput.addEventListener('input', () => {
+            if (mikaModel) mikaModel.motion('TapBody');
+        });
+
+        // D. KIRIM PESAN & PROSES AI
+        async function handleSendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            appendMessage('User', text, 'user-msg');
+            userInput.value = '';
+
+            if (mikaModel) mikaModel.motion('TapBody');
+
+            statusEl.innerText = "Mika AI: Thinking...";
+            const aiMessageDiv = appendMessage('Mika', '...', 'ai-msg');
+            const textSpan = aiMessageDiv.querySelector('.text-body');
+
+            try {
+                // ==========================================================
+                // ⚠️ TEMPEL SKRIP GENERATE / STREAMING AI 1.5B LU DI SINI
+                // ==========================================================
+                
+                let aiReplyText = "Model 1.5B kamu siap dipasang di sini, Lek!";
+
+                textSpan.innerText = aiReplyText;
+                statusEl.innerText = "Mika AI: Ready";
+
+                if (mikaModel) mikaModel.motion('TapBody');
+
+            } catch (error) {
+                console.error("AI Error:", error);
+                textSpan.innerText = "Gagal memproses AI.";
+                statusEl.innerText = "AI Error";
+            }
+        }
+
+        function appendMessage(sender, text, className) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${className}`;
+            msgDiv.innerHTML = `<b>${sender}:</b> <span class="text-body">${text}</span>`;
+            chatBar.appendChild(msgDiv);
+            chatBar.scrollTop = chatBar.scrollHeight;
+            return msgDiv;
+        }
+
+        sendBtn.addEventListener('click', handleSendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSendMessage();
+        });
+    </script>
+</body>
+</html>
